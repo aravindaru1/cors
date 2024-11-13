@@ -40,9 +40,13 @@ app.get('/serve', async (req, res) => {
                 response.data.on('error', reject);
             });
 
-            // Modify the playlist to use the proxy for each segment
+            // Modify the playlist to use the proxy for each segment and ensure HTTPS
             const modifiedPlaylist = playlistContent.replace(/https?:\/\/[^\s]+/g, (match) => {
                 const parsedUrl = new URL(match);
+                // Ensure HTTPS
+                if (parsedUrl.protocol === 'http:') {
+                    parsedUrl.protocol = 'https:';
+                }
                 return `${req.protocol}://${req.get('host')}/serve?url=${encodeURIComponent(parsedUrl.toString())}`;
             });
 
