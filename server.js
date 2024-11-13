@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 // Enable CORS for all origins
 app.use(cors());
 
-app.get('/proxy', async (req, res) => {
+app.get('/serve', async (req, res) => {
     const { url: targetUrl } = req.query;
 
     if (!targetUrl) {
