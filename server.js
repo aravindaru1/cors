@@ -20,8 +20,8 @@ app.get('/serve', async (req, res) => {
         const response = await axios.get(targetUrl, {
             responseType: 'stream',
             headers: {
-                'Referer': 'http://127.0.0.1:5500',
-                'Origin': 'http://127.0.0.1:5500',
+                'Referer': 'https://corsreverse.vercel.app',
+                'Origin': 'https://corsreverse.vercel.app',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
             }
         });
