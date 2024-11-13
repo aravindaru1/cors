@@ -43,7 +43,7 @@ app.get('/serve', async (req, res) => {
             // Modify the playlist to use the proxy for each segment
             const modifiedPlaylist = playlistContent.replace(/https?:\/\/[^\s]+/g, (match) => {
                 const parsedUrl = new URL(match);
-                return `${req.protocol}://${req.get('host')}/proxy?url=${encodeURIComponent(parsedUrl.toString())}`;
+                return `${req.protocol}://${req.get('host')}/serve?url=${encodeURIComponent(parsedUrl.toString())}`;
             });
 
             res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
