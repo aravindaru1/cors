@@ -1,67 +1,64 @@
+
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
-const url = require('url');
-
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
-// Enable CORS for all origins
+// Enable CORS for all routes
 app.use(cors());
 
-app.get('/serve', async (req, res) => {
-    const { url: targetUrl } = req.query;
+// serve for the first API
+app.get('/terabox/:code', async (req, res) => {
+    const { code } = req.params;
+    const url = `https://core.mdiskplay.com/box/terabox/${code}?aka=baka`;
 
-    if (!targetUrl) {
-        return res.status(400).send('URL is required');
+    try {
+        const response = await axios.get(url);
+        res.send(response.data);
+    } catch (error) {
+        res.status(500).send('Error serveing the request');
+    }
+});
+
+// serve for the second API (HLS video)
+app.get('/video/:code', async (req, res) => {
+    const { code } = req.params;
+    const url = `https://video.mdiskplay.com/${code}.m3u8`;
+
+    try {
+        const response = await axios.get(url);
+        const m3u8Content = response.data;
+
+        // serve the inner segments of the m3u8 file
+        const proxiedM3u8Content = m3u8Content.replace(
+            /https?:\/\/[^\s/$.?#].[^\s]*/g,
+            (match) => `http://localhost:${PORT}/serve?url=${encodeURIComponent(match)}`
+        );
+
+        res.set('Content-Type', 'application/vnd.apple.mpegurl');
+        res.send(proxiedM3u8Content);
+    } catch (error) {
+        res.status(500).send('Error serveing the request');
+    }
+});
+
+// serve for the inner segments of the m3u8 file
+app.get('/serve', async (req, res) => {
+    const { url } = req.query;
+
+    if (!url) {
+        return res.status(400).send('URL parameter is missing');
     }
 
     try {
-        const response = await axios.get(targetUrl, {
-            responseType: 'stream',
-            headers: {
-                'Referer': 'https://corsreverse.vercel.app',
-                'Origin': 'https://corsreverse.vercel.app',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
-            }
-        });
-
-        // Forward headers from the response, especially for CORS
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-
-        // Check if the response is an M3U8 playlist
-        if (response.headers['content-type'] && response.headers['content-type'].includes('application/vnd.apple.mpegurl')) {
-            // Read the playlist content
-            const playlistContent = await new Promise((resolve, reject) => {
-                let data = '';
-                response.data.on('data', chunk => data += chunk);
-                response.data.on('end', () => resolve(data));
-                response.data.on('error', reject);
-            });
-
-            // Modify the playlist to use the proxy for each segment and ensure HTTPS
-            const modifiedPlaylist = playlistContent.replace(/https?:\/\/[^\s]+/g, (match) => {
-                const parsedUrl = new URL(match);
-                // Ensure HTTPS
-                if (parsedUrl.protocol === 'http:') {
-                    parsedUrl.protocol = 'https:';
-                }
-                return `${req.protocol}://${req.get('host')}/serve?url=${encodeURIComponent(parsedUrl.toString())}`;
-            });
-
-            res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
-            res.send(modifiedPlaylist);
-        } else {
-            // Forward the stream for individual segments
-            response.data.pipe(res);
-        }
+        const response = await axios.get(url, { responseType: 'stream' });
+        response.data.pipe(res);
     } catch (error) {
-        console.error('Error fetching the URL:', error.message);
-        res.status(500).send('Error fetching the URL');
+        res.status(500).send('Error serveing the request');
     }
 });
 
 app.listen(PORT, () => {
-    console.log(`Proxy server is running on port ${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
