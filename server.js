@@ -33,7 +33,7 @@ app.get('/video/:code', async (req, res) => {
         // serve the inner segments of the m3u8 file
         const proxiedM3u8Content = m3u8Content.replace(
             /https?:\/\/[^\s/$.?#].[^\s]*/g,
-            (match) => `http://localhost:${PORT}/serve?url=${encodeURIComponent(match)}`
+            (match) => `https://corsreverse.vercel.app/serve?url=${encodeURIComponent(match)}`
         );
 
         res.set('Content-Type', 'application/vnd.apple.mpegurl');
