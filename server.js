@@ -1,4 +1,5 @@
 
+
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
@@ -7,7 +8,7 @@ const app = express();
 const PORT = 3000;
 
 // Enable CORS for all routes
-app.use(cors("https://merabox.vercel.app/"));
+app.use(cors());
 
 // serve for the first API
 app.get('/terabox/:code', async (req, res) => {
@@ -18,6 +19,7 @@ app.get('/terabox/:code', async (req, res) => {
         const response = await axios.get(url);
         res.send(response.data);
     } catch (error) {
+        console.error('Error serving the request:', error.message);
         res.status(500).send('Error serving the request');
     }
 });
@@ -45,6 +47,7 @@ app.get('/video/:code', async (req, res) => {
         res.set('Content-Type', 'application/vnd.apple.mpegurl');
         res.send(proxiedM3u8Content);
     } catch (error) {
+        console.error('Error serving the request:', error.message);
         res.status(500).send('Error serving the request');
     }
 });
@@ -61,6 +64,7 @@ app.get('/serve', async (req, res) => {
         const response = await axios.get(url, { responseType: 'stream' });
         response.data.pipe(res);
     } catch (error) {
+        console.error('Error serving the request:', error.message);
         res.status(500).send('Error serving the request');
     }
 });
@@ -102,9 +106,11 @@ app.get('/info/:code', async (req, res) => {
 
         res.json(JSON.parse(jsonData));
     } catch (error) {
+        console.error('Error serving the request:', error.message);
         res.status(500).send('Error serving the request');
     }
 });
 
 app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
