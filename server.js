@@ -72,7 +72,7 @@ app.get('/serve', async (req, res) => {
 // New endpoint to fetch and serve JSON data using Puppeteer
 app.get('/info/:code', async (req, res) => {
     const { code } = req.params;
-    const url = `https://corsreverse.vercel.app/serve?url=https://www.1024terabox.com/api/shorturlinfo?app_id=250528&web=1&channel=dubox&clienttype=0&jsToken=6AA124E7CCFBCDF411EF530A6C0949ABDF8A281CEAE373584815D693A04F470819CD03A9765D1B673E4F019BAC8D6857951362D57F6A883C5E98478D1996EA917356C9984AEE598FEA2D34CC52743336ED740F79766B1247A339BC7B979F9C96&dp-logid=56716800478506330002&shorturl=1${code}&root=1&scene=`;
+    const url = ``;
 
     try {
         const browser = await puppeteer.launch({ headless: true });
