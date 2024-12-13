@@ -1,3 +1,4 @@
+
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
@@ -6,7 +7,7 @@ const app = express();
 const PORT = 3000;
 
 // Enable CORS for all routes
-app.use(cors());
+app.use(cors("https://merabox.vercel.app/"));
 
 // serve for the first API
 app.get('/terabox/:code', async (req, res) => {
@@ -17,7 +18,6 @@ app.get('/terabox/:code', async (req, res) => {
         const response = await axios.get(url);
         res.send(response.data);
     } catch (error) {
-        console.error('Error serving the request:', error.message);
         res.status(500).send('Error serving the request');
     }
 });
@@ -45,7 +45,6 @@ app.get('/video/:code', async (req, res) => {
         res.set('Content-Type', 'application/vnd.apple.mpegurl');
         res.send(proxiedM3u8Content);
     } catch (error) {
-        console.error('Error serving the request:', error.message);
         res.status(500).send('Error serving the request');
     }
 });
@@ -62,7 +61,6 @@ app.get('/serve', async (req, res) => {
         const response = await axios.get(url, { responseType: 'stream' });
         response.data.pipe(res);
     } catch (error) {
-        console.error('Error serving the request:', error.message);
         res.status(500).send('Error serving the request');
     }
 });
@@ -70,12 +68,21 @@ app.get('/serve', async (req, res) => {
 // New endpoint to fetch and serve JSON data using Puppeteer
 app.get('/info/:code', async (req, res) => {
     const { code } = req.params;
-    const urli = `https://www.terabox.com/share/list?app_id=250528&shorturl=${code}&root=1`;
-    const url = `https://corsreverse.vercel.app/serve?url=${encodeURIComponent(urli)}`
+    const url = `https://www.1024terabox.com/api/shorturlinfo?app_id=250528&web=1&channel=dubox&clienttype=0&jsToken=6AA124E7CCFBCDF411EF530A6C0949ABDF8A281CEAE373584815D693A04F470819CD03A9765D1B673E4F019BAC8D6857951362D57F6A883C5E98478D1996EA917356C9984AEE598FEA2D34CC52743336ED740F79766B1247A339BC7B979F9C96&dp-logid=56716800478506330002&shorturl=1${code}&root=1&scene=`;
 
     try {
         const browser = await puppeteer.launch({ headless: true });
         const page = await browser.newPage();
+
+        // Set necessary headers and cookies
+        await page.setExtraHTTPHeaders({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept': 'application/json, text/plain, */*',
+            'Referer': 'https://www.1024terabox.com/',
+            'Origin': 'https://www.1024terabox.com'
+        });
+
         await page.goto(url);
 
         // Wait for the JSON data to be available in the page
@@ -95,11 +102,9 @@ app.get('/info/:code', async (req, res) => {
 
         res.json(JSON.parse(jsonData));
     } catch (error) {
-        console.error('Error serving the request:', error.message);
         res.status(500).send('Error serving the request');
     }
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
 });
